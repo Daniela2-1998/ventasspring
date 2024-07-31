@@ -4,6 +4,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 
 import ClientesPage from './pages/ClientesPage';
+import InfoCliente from './components/InfoCliente';
 
 
 function App() {
@@ -11,7 +12,8 @@ function App() {
     <Router>
       <Routes>
         <Route path="/clientes" element={<ClientesPage />} />
-        {/* Agrega más rutas según sea necesario */}
+        <Route path="/clientes/:id" element={<InfoCliente />} />
+
       </Routes>
     </Router>
   );
