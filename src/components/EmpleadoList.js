@@ -3,14 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { Table, Form, Button, InputGroup, Alert, Container } from 'react-bootstrap';
 import { FaSearch, FaFilePdf, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
-import clienteService from '../services/clienteService';
+import empleadoService from '../services/empleadoService';
+
 
 const PageContainer = styled(Container)`
   background-color: #fff;
   border-radius: 10px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
   padding: 2rem;
-  margin-top: 2rem;
+  margin-top: 10rem;
   width: 100%;
   max-width: 1200px;
   
@@ -87,8 +88,9 @@ const AddButton = styled(StyledButton)`
   margin-bottom: 1rem;
 `;
 
-const ClienteList = () => {
-  const [clientes, setClientes] = useState([]);
+
+const EmpleadoList = () => {
+  const [empleados, setEmpleados] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [searchId, setSearchId] = useState('');
   const [error, setError] = useState('');
@@ -96,17 +98,17 @@ const ClienteList = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadClientes();
+    loadEmpleados();
   }, [currentPage]);
 
-  const loadClientes = async () => {
+  const loadEmpleados = async () => {
     try {
-      const data = await clienteService.getAllClientes(currentPage);
-      setClientes(data.content);
+      const data = await empleadoService.getAllEmpleados(currentPage);
+      setEmpleados(data.content);
       setError('');
     } catch (error) {
-      console.error('Error al cargar clientes:', error);
-      setError('Error al cargar los clientes. Por favor, intente de nuevo.');
+      console.error('Error al cargar empleados:', error);
+      setError('Error al cargar los empleados. Por favor, intente de nuevo.');
     }
   };
 
@@ -116,55 +118,48 @@ const ClienteList = () => {
       setError('Por favor, ingrese un ID válido.');
       return;
     }
-    
+
     const id = parseInt(searchId, 10);
     if (isNaN(id) || id <= 0) {
       setError('Por favor, ingrese un ID válido (número entero positivo).');
       return;
     }
-  
+
     try {
-      const cliente = await clienteService.getClienteById(id);
-      console.log('Cliente recibido:', cliente);
-      setClientes([cliente]);
+      const empleado = await empleadoService.getEmpleadoById(id);
+      setEmpleados([empleado]);
       setError('');
     } catch (error) {
-      console.error('Error al buscar cliente:', error);
-      if (error.response) {
-        setError(`Error del servidor: ${error.response.status} ${error.response.statusText}`);
-      } else if (error.request) {
-        setError('No se recibió respuesta del servidor. Verifica tu conexión.');
-      } else {
-        setError('Error al realizar la petición: ' + error.message);
-      }
-      setClientes([]);
+      console.error('Error al buscar empleado:', error);
+      setError('Error al buscar el empleado. Por favor, intente de nuevo.');
+      setEmpleados([]);
     }
   };
 
   const handleReset = () => {
     setSearchId('');
-    loadClientes();
+    loadEmpleados();
   };
 
   const handleRowClick = (id) => {
-    navigate(`/clientes/${id}`);
+    navigate(`/empleados/${id}`);
   };
 
   const handleEdit = (e, id) => {
     e.stopPropagation();
-    navigate(`/clientes/${id}`);
+    navigate(`/empleados/${id}`);
   };
 
   const handleDelete = async (e, id) => {
     e.stopPropagation();
-    if (window.confirm('¿Está seguro de que desea eliminar este cliente?')) {
+    if (window.confirm('¿Está seguro de que desea eliminar este empleado?')) {
       try {
-        await clienteService.deleteCliente(id);
-        loadClientes();
+        await empleadoService.deleteEmpleado(id);
+        loadEmpleados();
         setError('');
       } catch (error) {
-        console.error('Error al eliminar cliente:', error);
-        setError('Error al eliminar el cliente. Por favor, intente de nuevo.');
+        console.error('Error al eliminar empleado:', error);
+        setError('Error al eliminar el empleado. Por favor, intente de nuevo.');
       }
     }
   };
@@ -174,17 +169,17 @@ const ClienteList = () => {
   };
 
   const handleAddNew = () => {
-    navigate('/clientes/nuevo');
+    navigate('/empleados/nuevo');
   };
 
   return (
     <PageContainer>
-      <StyledTitle>Lista de Clientes</StyledTitle>
-      
+      <StyledTitle>Lista de Empleados</StyledTitle>
+
       <AddButton onClick={handleAddNew}>
-        <FaPlus /> Agregar Cliente
+        <FaPlus /> Agregar Empleado
       </AddButton>
-      
+
       <StyledForm onSubmit={handleSearch}>
         <StyledInputGroup>
           <Form.Control
@@ -212,30 +207,28 @@ const ClienteList = () => {
         <thead>
           <tr>
             <th>ID</th>
-            <th>Nombre</th>
+            <th>Nombre Completo</th>
             <th>Fecha de Nacimiento</th>
-            <th>DNI</th>
+            <th>Cargo</th>
             <th>Teléfono</th>
-            <th>Dirección</th>
-            <th>Tipo</th>
+            <th>Salario</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          {clientes.map(cliente => (
-            <tr key={cliente.id} onClick={() => handleRowClick(cliente.id)} style={{cursor: 'pointer'}}>
-              <td>{cliente.id}</td>
-              <td>{cliente.nombre}</td>
-              <td>{cliente.fechaNacimiento}</td>
-              <td>{cliente.dni}</td>
-              <td>{cliente.telefono}</td>
-              <td>{cliente.direccion}</td>
-              <td>{cliente.tipo}</td>
+          {empleados.map(empleado => (
+            <tr key={empleado.id} onClick={() => handleRowClick(empleado.id)} style={{ cursor: 'pointer' }}>
+              <td>{empleado.id}</td>
+              <td>{empleado.nombreCompleto}</td>
+              <td>{empleado.fechaNacimiento}</td>
+              <td>{empleado.cargo}</td>
+              <td>{empleado.telefono}</td>
+              <td>{empleado.salario}</td>
               <td onClick={e => e.stopPropagation()}>
-                <ActionButton onClick={(e) => handleEdit(e, cliente.id)}>
+                <ActionButton onClick={(e) => handleEdit(e, empleado.id)}>
                   <FaEdit />
                 </ActionButton>
-                <ActionButton onClick={(e) => handleDelete(e, cliente.id)}>
+                <ActionButton onClick={(e) => handleDelete(e, empleado.id)}>
                   <FaTrash />
                 </ActionButton>
               </td>
@@ -246,15 +239,15 @@ const ClienteList = () => {
 
       {!searchId && (
         <div className="d-flex justify-content-between mt-3">
-          <StyledButton 
-            variant="secondary" 
+          <StyledButton
+            variant="secondary"
             onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
             disabled={currentPage === 0}
           >
             Anterior
           </StyledButton>
-          <StyledButton 
-            variant="secondary" 
+          <StyledButton
+            variant="secondary"
             onClick={() => setCurrentPage(prev => prev + 1)}
           >
             Siguiente
@@ -265,4 +258,4 @@ const ClienteList = () => {
   );
 };
 
-export default ClienteList;
+export default EmpleadoList;

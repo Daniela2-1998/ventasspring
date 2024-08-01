@@ -3,20 +3,20 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { Table, Form, Button, InputGroup, Alert, Container } from 'react-bootstrap';
 import { FaSearch, FaFilePdf, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
-import clienteService from '../services/clienteService';
+import usuarioService from '../services/usuarioService';
 
 const PageContainer = styled(Container)`
   background-color: #fff;
   border-radius: 10px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
   padding: 2rem;
-  margin-top: 2rem;
+  margin-top: 12rem;
   width: 100%;
   max-width: 1200px;
   
   @media (max-width: 768px) {
     padding: 1rem;
-    margin-top: 1rem;
+    margin-top: 10rem;
     border-radius: 0;
     box-shadow: none;
   }
@@ -87,8 +87,8 @@ const AddButton = styled(StyledButton)`
   margin-bottom: 1rem;
 `;
 
-const ClienteList = () => {
-  const [clientes, setClientes] = useState([]);
+const UsuarioList = () => {
+  const [usuarios, setUsuarios] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [searchId, setSearchId] = useState('');
   const [error, setError] = useState('');
@@ -96,17 +96,17 @@ const ClienteList = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadClientes();
+    loadUsuarios();
   }, [currentPage]);
 
-  const loadClientes = async () => {
+  const loadUsuarios = async () => {
     try {
-      const data = await clienteService.getAllClientes(currentPage);
-      setClientes(data.content);
+      const data = await usuarioService.getAllUsuarios(currentPage);
+      setUsuarios(data.content || data);
       setError('');
     } catch (error) {
-      console.error('Error al cargar clientes:', error);
-      setError('Error al cargar los clientes. Por favor, intente de nuevo.');
+      console.error('Error al cargar usuarios:', error);
+      setError('Error al cargar los usuarios. Por favor, intente de nuevo.');
     }
   };
 
@@ -116,55 +116,48 @@ const ClienteList = () => {
       setError('Por favor, ingrese un ID válido.');
       return;
     }
-    
+
     const id = parseInt(searchId, 10);
     if (isNaN(id) || id <= 0) {
       setError('Por favor, ingrese un ID válido (número entero positivo).');
       return;
     }
-  
+
     try {
-      const cliente = await clienteService.getClienteById(id);
-      console.log('Cliente recibido:', cliente);
-      setClientes([cliente]);
+      const usuario = await usuarioService.getUsuarioById(id);
+      setUsuarios([usuario]);
       setError('');
     } catch (error) {
-      console.error('Error al buscar cliente:', error);
-      if (error.response) {
-        setError(`Error del servidor: ${error.response.status} ${error.response.statusText}`);
-      } else if (error.request) {
-        setError('No se recibió respuesta del servidor. Verifica tu conexión.');
-      } else {
-        setError('Error al realizar la petición: ' + error.message);
-      }
-      setClientes([]);
+      console.error('Error al buscar usuario:', error);
+      setError('Error al buscar el usuario. Por favor, intente de nuevo.');
+      setUsuarios([]);
     }
   };
 
   const handleReset = () => {
     setSearchId('');
-    loadClientes();
+    loadUsuarios();
   };
 
   const handleRowClick = (id) => {
-    navigate(`/clientes/${id}`);
+    navigate(`/usuarios/${id}`);
   };
 
   const handleEdit = (e, id) => {
     e.stopPropagation();
-    navigate(`/clientes/${id}`);
+    navigate(`/usuarios/${id}`);
   };
 
   const handleDelete = async (e, id) => {
     e.stopPropagation();
-    if (window.confirm('¿Está seguro de que desea eliminar este cliente?')) {
+    if (window.confirm('¿Está seguro de que desea eliminar este usuario?')) {
       try {
-        await clienteService.deleteCliente(id);
-        loadClientes();
+        await usuarioService.deleteUsuario(id);
+        loadUsuarios();
         setError('');
       } catch (error) {
-        console.error('Error al eliminar cliente:', error);
-        setError('Error al eliminar el cliente. Por favor, intente de nuevo.');
+        console.error('Error al eliminar usuario:', error);
+        setError('Error al eliminar el usuario. Por favor, intente de nuevo.');
       }
     }
   };
@@ -174,17 +167,17 @@ const ClienteList = () => {
   };
 
   const handleAddNew = () => {
-    navigate('/clientes/nuevo');
+    navigate('/usuarios/nuevo');
   };
 
   return (
     <PageContainer>
-      <StyledTitle>Lista de Clientes</StyledTitle>
-      
+      <StyledTitle>Lista de Usuarios</StyledTitle>
+
       <AddButton onClick={handleAddNew}>
-        <FaPlus /> Agregar Cliente
+        <FaPlus /> Agregar Usuario
       </AddButton>
-      
+
       <StyledForm onSubmit={handleSearch}>
         <StyledInputGroup>
           <Form.Control
@@ -212,30 +205,26 @@ const ClienteList = () => {
         <thead>
           <tr>
             <th>ID</th>
-            <th>Nombre</th>
-            <th>Fecha de Nacimiento</th>
-            <th>DNI</th>
-            <th>Teléfono</th>
-            <th>Dirección</th>
-            <th>Tipo</th>
+            <th>Nombre de Usuario</th>
+            <th>Email</th>
+            <th>Rol</th>
+            <th>Estado</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          {clientes.map(cliente => (
-            <tr key={cliente.id} onClick={() => handleRowClick(cliente.id)} style={{cursor: 'pointer'}}>
-              <td>{cliente.id}</td>
-              <td>{cliente.nombre}</td>
-              <td>{cliente.fechaNacimiento}</td>
-              <td>{cliente.dni}</td>
-              <td>{cliente.telefono}</td>
-              <td>{cliente.direccion}</td>
-              <td>{cliente.tipo}</td>
+          {usuarios.map(usuario => (
+            <tr key={usuario.id} onClick={() => handleRowClick(usuario.id)} style={{ cursor: 'pointer' }}>
+              <td>{usuario.id}</td>
+              <td>{usuario.nombreUsuario}</td>
+              <td>{usuario.mail}</td>
+              <td>{usuario.rol}</td>
+              <td>{usuario.estado}</td>
               <td onClick={e => e.stopPropagation()}>
-                <ActionButton onClick={(e) => handleEdit(e, cliente.id)}>
+                <ActionButton onClick={(e) => handleEdit(e, usuario.id)}>
                   <FaEdit />
                 </ActionButton>
-                <ActionButton onClick={(e) => handleDelete(e, cliente.id)}>
+                <ActionButton onClick={(e) => handleDelete(e, usuario.id)}>
                   <FaTrash />
                 </ActionButton>
               </td>
@@ -246,15 +235,15 @@ const ClienteList = () => {
 
       {!searchId && (
         <div className="d-flex justify-content-between mt-3">
-          <StyledButton 
-            variant="secondary" 
+          <StyledButton
+            variant="secondary"
             onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
             disabled={currentPage === 0}
           >
             Anterior
           </StyledButton>
-          <StyledButton 
-            variant="secondary" 
+          <StyledButton
+            variant="secondary"
             onClick={() => setCurrentPage(prev => prev + 1)}
           >
             Siguiente
@@ -265,4 +254,4 @@ const ClienteList = () => {
   );
 };
 
-export default ClienteList;
+export default UsuarioList;

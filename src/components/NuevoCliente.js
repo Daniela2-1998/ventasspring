@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { Form, Button, Container, Row, Col, Alert } from 'react-bootstrap';
 import { FaCheckCircle } from 'react-icons/fa';
 import clienteService from '../services/clienteService';
+
 
 const PageContainer = styled(Container)`
   background-color: #fff;
@@ -64,25 +65,18 @@ const AlertButton = styled(Button)`
   }
 `;
 
-const InfoCliente = () => {
-  const { id } = useParams();
+const NuevoCliente = () => {
   const navigate = useNavigate();
-  const [cliente, setCliente] = useState(null);
+  const [cliente, setCliente] = useState({
+    nombre: '',
+    fechaNacimiento: '',
+    dni: '',
+    telefono: '',
+    direccion: '',
+    tipo: 'INDIVIDUAL'
+  });
   const [error, setError] = useState('');
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
-
-  useEffect(() => {
-    const fetchCliente = async () => {
-      try {
-        const data = await clienteService.getClienteById(id);
-        setCliente(data);
-      } catch (error) {
-        console.error('Error al obtener el cliente:', error);
-        setError('Error al cargar los datos del cliente. Por favor, intente de nuevo.');
-      }
-    };
-    fetchCliente();
-  }, [id]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -95,38 +89,23 @@ const InfoCliente = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await clienteService.updateCliente(cliente);
+      await clienteService.createCliente(cliente);
       setError('');
       setShowSuccessAlert(true);
     } catch (error) {
-      console.error('Error al actualizar el cliente:', error);
-      setError('Error al actualizar los datos del cliente. Por favor, intente de nuevo.');
+      console.error('Error al crear el cliente:', error);
+      setError('Error al crear el cliente. Por favor, intente de nuevo.');
     }
   };
-
-  const handleDelete = async () => {
-    if (window.confirm('¿Está seguro de que desea eliminar este cliente?')) {
-      try {
-        await clienteService.deleteCliente(cliente.id);
-        navigate('/clientes');
-      } catch (error) {
-        console.error('Error al eliminar cliente:', error);
-        setError('Error al eliminar el cliente. Por favor, intente de nuevo.');
-      }
-    }
-  };
-
-  if (!cliente) return <div>Cargando...</div>;
 
   return (
     <PageContainer>
-      <Title>Información del Cliente</Title>
-      <IdBox>ID: {cliente.id}</IdBox>
+      <Title>Crear Nuevo Cliente</Title>
       {error && <Alert variant="danger">{error}</Alert>}
       {showSuccessAlert && (
         <CustomAlert>
           <span>
-            <FaCheckCircle /> Cliente modificado exitosamente
+            <FaCheckCircle /> Cliente creado exitosamente
           </span>
           <AlertButton onClick={() => navigate('/clientes')}>
             Regresar a la lista
@@ -143,6 +122,7 @@ const InfoCliente = () => {
                 name="nombre"
                 value={cliente.nombre}
                 onChange={handleInputChange}
+                required
               />
             </Form.Group>
           </Col>
@@ -154,6 +134,7 @@ const InfoCliente = () => {
                 name="fechaNacimiento"
                 value={cliente.fechaNacimiento}
                 onChange={handleInputChange}
+                required
               />
             </Form.Group>
           </Col>
@@ -167,6 +148,7 @@ const InfoCliente = () => {
                 name="dni"
                 value={cliente.dni}
                 onChange={handleInputChange}
+                required
               />
             </Form.Group>
           </Col>
@@ -178,6 +160,7 @@ const InfoCliente = () => {
                 name="telefono"
                 value={cliente.telefono}
                 onChange={handleInputChange}
+                required
               />
             </Form.Group>
           </Col>
@@ -189,6 +172,7 @@ const InfoCliente = () => {
             name="direccion"
             value={cliente.direccion}
             onChange={handleInputChange}
+            required
           />
         </Form.Group>
         <Form.Group className="mb-3">
@@ -198,6 +182,7 @@ const InfoCliente = () => {
             name="tipo"
             value={cliente.tipo}
             onChange={handleInputChange}
+            required
           >
             <option value="INDIVIDUAL">INDIVIDUAL</option>
             <option value="CORPORATIVO">CORPORATIVO</option>
@@ -206,15 +191,12 @@ const InfoCliente = () => {
         <div className="d-flex justify-content-between">
           <div>
             <BackButton onClick={() => navigate(-1)}>Volver</BackButton>
-            <StyledButton type="submit">Guardar Cambios</StyledButton>
+            <StyledButton type="submit">Crear Cliente</StyledButton>
           </div>
-          <StyledButton variant="danger" onClick={handleDelete}>
-            Eliminar Cliente
-          </StyledButton>
         </div>
       </StyledForm>
     </PageContainer>
   );
 };
 
-export default InfoCliente;
+export default NuevoCliente;
